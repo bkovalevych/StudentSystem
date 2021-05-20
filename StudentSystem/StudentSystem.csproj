@@ -129,15 +129,22 @@
     <Compile Include="Helpers\Observable.cs" />
     <Compile Include="Helpers\QueryParameterConverter.cs" />
     <Compile Include="Helpers\RelayCommand.cs" />
+    <Compile Include="Helpers\SortParameterConverter.cs" />
     <Compile Include="Helpers\ToExcel.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\DepartmentFilterService.cs" />
-    <Compile Include="Services\GroupFilterService.cs" />
-    <Compile Include="Services\FilterService.cs" />
-    <Compile Include="Services\IFilterService.cs" />
+    <Compile Include="ResourcesInitData\ContentPresenter.cs" />
+    <Compile Include="Services\Filters\DepartmentFilterService.cs" />
+    <Compile Include="Services\Filters\GroupFilterService.cs" />
+    <Compile Include="Services\Filters\FilterService.cs" />
+    <Compile Include="Services\Filters\IFilterService.cs" />
+    <Compile Include="Services\Filters\StudentFilter.cs" />
+    <Compile Include="Services\Sorters\ISorterService.cs" />
+    <Compile Include="Services\Sorters\ParentSorterSevice.cs" />
+    <Compile Include="Services\Sorters\SorterService.cs" />
+    <Compile Include="Services\Sorters\StudentSorterService.cs" />
     <Compile Include="StudentContext.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
     <Compile Include="ViewModels\ItemChoose.cs" />
@@ -156,6 +163,9 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="ResourcesInitData\Parents.txt" />
+    <Content Include="ResourcesInitData\Students.txt" />
+    <Content Include="ResourcesInitData\Streets.txt" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">

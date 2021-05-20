@@ -13,6 +13,8 @@ namespace StudentSystem.ViewModels
     using Services;
     using System.Windows.Input;
     using System.Diagnostics;
+    using Windows.UI.Xaml;
+    using Microsoft.EntityFrameworkCore;
 
     public class BaseVM : Observable {
         public ObservableCollection<Student> Students { get; set; }
@@ -22,7 +24,7 @@ namespace StudentSystem.ViewModels
         public ObservableCollection<Department> Departments {get; set;}
         public ObservableCollection<Student> Report { get => report; set => Set(ref report, value); }
         private ObservableCollection<Student> report;
-        public List<int> Courses => new List<int> { 1, 2, 3, 4, 5 };
+        public List<int> Courses => new List<int> { 1, 2 };
 
         private List<Observable> needDelete = new List<Observable>();
         private List<Observable> needAdd = new List<Observable>();
@@ -35,7 +37,7 @@ namespace StudentSystem.ViewModels
             }
         }
         private int selectedCourse = 1;
-        public List<int> GroupNumbers => new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        public List<int> GroupNumbers => new List<int> { 1, 2 };
         public int SelectedGroupNumber { get => selectedGroupNumber; 
             set {
                 Set(ref selectedGroupNumber, value);
@@ -86,28 +88,12 @@ namespace StudentSystem.ViewModels
             get => selectedLowRow; set
             {
                 Set(ref selectedLowRow, value);
-                //if(value is Department d)
-                //{
-                //    LowLevel = d.Groups;
-                //}
-                //else if(value is Group g)
-                //{
-                //    LowLevel = g.Students;
-                //}
-                //else if(value is Student s)
-                //{
-                //    LowLevel = s.StudentParents;
-                //}
-                //else if(value is Parent p)
-                //{
-                //    LowLevel = p.StudentParents;
-                //}
             }
         }
         private Observable selectedLowRow;
 
         public ICommand DeleteHighItemCommand => new RelayCommand(() => DeleteHighItem(SelectedRow));
-        public ICommand DeleteLowtemCommand => new RelayCommand(() => DeleteHighItem(SelectedLowRow));
+        public ICommand DeleteLowtemCommand => new RelayCommand(() => DeleteLowItem(SelectedLowRow));
 
         private void DeleteHighItem(Observable r)
         {
@@ -116,20 +102,60 @@ namespace StudentSystem.ViewModels
                 needDelete.Add(r);
                 if(r is Group g)
                 {
+                    g.Department?.Groups.Remove(g);
                     Groups.Remove(g);
                 } else if(r is Department d)
                 {
+                    d.Groups?.Clear();
                     Departments.Remove(d);
                 } else if(r is Parent p)
                 {
+                    p.StudentParents?.Clear();
                     Parents.Remove(p);
                 } else if(r is Student s)
                 {
+                    s.Group?.Students?.Remove(s);
                     Students.Remove(s);
                 } else if(r is StudentParent sp)
                 {
+                    sp.Parent?.StudentParents?.Remove(sp);
+                    sp.Student?.StudentParents?.Remove(sp);
                     StudentParents.Remove(sp);
                 }
+                
+            }
+        }
+
+        private void DeleteLowItem(Observable r)
+        {
+            if(r != null)
+            {
+                if(r is Group g)
+                {
+                    g.Department?.Groups.Remove(g);
+                    g.Department = null;
+                    g.DepartmentId = null;
+                }
+                else if(r is Department d)
+                {
+                }
+                else if(r is Parent p)
+                {
+                    
+                }
+                else if(r is Student s)
+                {
+                    s.Group?.Students?.Remove(s);
+                    s.Group = null;
+                    s.GroupId = null;
+                }
+                else if(r is StudentParent sp)
+                {
+                    sp.Parent?.StudentParents?.Remove(sp);
+                    sp.Student?.StudentParents?.Remove(sp);
+                    StudentParents.Remove(sp);
+                }
+
             }
         }
 
@@ -177,7 +203,6 @@ namespace StudentSystem.ViewModels
             var r = SelectedRow;
             if(r != null)
             {
-                needDelete.Add(r);
                 if(r is Group g)
                 {
                     if(g.Students == null)
@@ -243,20 +268,20 @@ namespace StudentSystem.ViewModels
 
         public ICommand SearchCommand => new RelayCommand((o) =>
         {
-            if(o is string param)
+            if(o is string param && SelectedFilter != null)
             {
                 var finded = SelectedFilter.SearchParent(param);
                 switch(selectedVariant.Variant)
                 {
                     case nameof(Students):
-                        
-                        //Add(columns, columnsTemplate.Students);
+                        Students.Clear();
+                        Add(Students, (IEnumerable<Student>)finded);
                         break;
                     case nameof(Parents):
                         //Add(columns, columnsTemplate.Parents);
                         break;
                     case nameof(StudentParents):
-                        //Add(columns, columnsTemplate.StudentsParents);
+                        
                         break;
                     case nameof(Groups):
                         Groups.Clear();
@@ -278,12 +303,25 @@ namespace StudentSystem.ViewModels
             using(var db = new StudentContext())
             {
                 db.AddRange(needAdd);
+                Groups.Where(o => !Equals(o.DepartmentId, o.Department?.DepartmentId))
+                    .ToList().ForEach(g =>
+                    {
+                        var d = Departments.First(o => Equals(o.DepartmentId, g.DepartmentId));
+                        g.Department = d;
+                        d?.Groups?.Add(g);
+                    });
                 db.Departments.UpdateRange(Departments.Where(o => !needAdd.Contains(o)));
                 db.Groups.UpdateRange(Groups.Where(o => !needAdd.Contains(o)));
                 db.Parents.UpdateRange(Parents.Where(o => !needAdd.Contains(o)));
                 db.Students.UpdateRange(Students.Where(o => !needAdd.Contains(o)));
                 db.StudentParents.UpdateRange(StudentParents.Where(o => !needAdd.Contains(o)));
-                db.RemoveRange(needDelete);
+                try
+                {
+                    db.RemoveRange(needDelete);
+                } catch(Exception o)
+                {
+                    Trace.WriteLine(o.Message);
+                }
                 needAdd.Clear();
                 needDelete.Clear();
                 try
@@ -306,40 +344,80 @@ namespace StudentSystem.ViewModels
             set => Set(ref selectedFilter, value);
         }
         private IFilterService<Observable> selectedFilter;
+        public ISorterService<Observable> SorterService
+        {
+            get => sorterService;
+            set => Set(ref sorterService, value);
+        }
+        private ISorterService<Observable> sorterService;
+        public Visibility ShowReport
+        {
+            get => showReport;
+            set => Set(ref showReport, value);
+        }
+        private Visibility showReport = Visibility.Collapsed;
+
+        public ICommand SortCommand => new RelayCommand((o) =>
+        {
+            if(o is DataGridColumn dg)
+            {
+                SorterService?.Sort(SelectedVariant.Val, dg);
+            }
+        });
+
         public ItemChoose SelectedVariant { get => selectedVariant;
             set
             { 
+                columns.Clear();
+                lowColumns.Clear();
                 Set(ref selectedVariant, value);
                 columns.Clear();
+                lowColumns.Clear();
+                LowLevel = null;
+                ShowReport = Visibility.Collapsed;
                 switch(value.Variant) {
                     case nameof(Students):
+                        SelectedFilter = new StudentFilter();
+                        SorterService = new StudentSorterService();
+                        
                         Add(columns, columnsTemplate.Students);
+                        Add(lowColumns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(Parents):
                         Add(columns, columnsTemplate.Parents);
+                        Add(lowColumns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(StudentParents):
                         Add(columns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(Groups):
+                        SelectedFilter = new GroupFilterService();
                         Add(columns, columnsTemplate.Groups);
+                        Add(lowColumns, columnsTemplate.Students);
                         break;
                     case nameof(Departments):
+                        SelectedFilter = new DepartmentFilterService();
                         Add(columns, columnsTemplate.Departments);
+                        Add(lowColumns, columnsTemplate.Groups);
                         break;
                     case "Report":
                         Add(columns, columnsTemplate.Students);
                         UpdateReport();
+                        ShowReport = Visibility.Visible;
                         break;
                 }
+                
+
             }
         }
         private ItemChoose selectedVariant;
         private readonly ObservableCollection<DataGridColumn> columns;
-        
+        private readonly ObservableCollection<DataGridColumn> lowColumns;
+
         private readonly ColumnsTemplate columnsTemplate;
-        public BaseVM(ObservableCollection<DataGridColumn> columns) {
+        public BaseVM(ObservableCollection<DataGridColumn> columns, ObservableCollection<DataGridColumn> lowColumns) {
             this.columns = columns;
+            this.lowColumns = lowColumns;
             InitCollection();
             UpdateCollections();
             variants = new List<ItemChoose>() {
@@ -353,7 +431,7 @@ namespace StudentSystem.ViewModels
             columnsTemplate = new ColumnsTemplate();
             SelectedVariant = Variants[0];
             LowLevel = new ObservableCollection<Observable>();
-            ShortNames = Groups.Select((g) => g.ShortName).Distinct().ToList();
+            
         }
 
         private void UpdateReport() {
@@ -384,6 +462,7 @@ namespace StudentSystem.ViewModels
                 Add(Groups, db.Groups);
                 Departments.Clear();
                 Add(Departments, db.Departments);
+                ShortNames = Groups.Select((g) => g.ShortName).Distinct().ToList();
             }
         }
         private void Add<T>(ObservableCollection<T> src, IEnumerable<T> needAdd) {

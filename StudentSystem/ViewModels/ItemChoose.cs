@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StudentSystem.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace StudentSystem.ViewModels
     public class ItemChoose
     {
         public string Variant { get; set; }
-        public IEnumerable<object> Val { get; set; }
+        public IEnumerable<Observable> Val { get; set; }
         public override string ToString() {
             return Variant;
         }

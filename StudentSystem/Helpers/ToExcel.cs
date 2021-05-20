@@ -159,7 +159,7 @@ namespace StudentSystem.Helpers
 							worksheet.Range[row, col++].Text = $"{report.FirstName}";
 							worksheet.Range[row, col++].Text = $"{report.SecondName}";
 							worksheet.Range[row, col++].Text = $"{report.ThirdName}";
-							worksheet.Range[row, col++].DateTime = report.Birthday;
+							worksheet.Range[row, col++].Text = report.Birthday.DateTime.ToShortDateString();
 							worksheet.Range[row, col++].Text = $"{report.Address}";
 							worksheet.Range[row, col++].Text = $"{report.BirthdayCertificate}";
 							worksheet.Range[row, col++].Text = $"{report.School}";

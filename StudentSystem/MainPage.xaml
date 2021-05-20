@@ -14,6 +14,7 @@
     Background="DimGray">
     <Page.Resources>
         <helpers:QueryParameterConverter x:Key="querySubmitConverter"/>
+        <helpers:SortParameterConverter x:Key="sortConverter"/>
     </Page.Resources>
     <Page.TopAppBar>
         <CommandBar>
@@ -45,6 +46,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+        
         <ComboBox ItemsSource="{x:Bind vm.Variants}" SelectedItem="{x:Bind vm.SelectedVariant, Mode=TwoWay}"/>
         <controls:DataGrid x:Name="dtGrid"
                            IsReadOnly="False"
@@ -54,6 +56,13 @@
                            ItemsSource="{x:Bind vm.SelectedVariant.Val, Mode=TwoWay}"
                            AutoGenerateColumns="False"
                            >
+            <interactivity:Interaction.Behaviors>
+                <interactions:EventTriggerBehavior EventName="Sorting">
+                    <interactions:InvokeCommandAction 
+                        Command="{x:Bind vm.SortCommand}"
+                        InputConverter="{StaticResource sortConverter}"/>
+                </interactions:EventTriggerBehavior>
+            </interactivity:Interaction.Behaviors>
             <controls:DataGrid.ContextFlyout>
                 <MenuFlyout>
                     <MenuFlyoutItem Text="Додати" Icon="Add" Command="{x:Bind vm.AddHighItemCommand}"/>
@@ -68,8 +77,9 @@
                            Grid.Row="2"
                            SelectedItem="{x:Bind vm.SelectedLowRow, Mode=TwoWay}"
                            ItemsSource="{x:Bind vm.LowLevel, Mode=TwoWay}"
-                           AutoGenerateColumns="True"
+                           AutoGenerateColumns="False"
                            >
+            
             <controls:DataGrid.ContextFlyout>
                 <MenuFlyout>
                     <MenuFlyoutItem Text="Додати на нижньому рівні" Icon="Add" Command="{x:Bind vm.AddLowItemCommand}"/>
@@ -77,7 +87,11 @@
                 </MenuFlyout>
             </controls:DataGrid.ContextFlyout>
         </controls:DataGrid>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="20">
+        
+        <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal" 
+                    Spacing="20" 
+                    Visibility="{x:Bind vm.ShowReport, Mode=TwoWay}">
             <Button Click="MakeReport" >Make report</Button>
             <ComboBox Header="Group" 
                       ItemsSource="{x:Bind vm.ShortNames}" 

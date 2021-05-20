@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,10 +13,18 @@ namespace StudentSystem.Entities
     {
         public int ParentId { get => id; set => Set(ref id, value); }
         private int id;
-        public string FirstName { get => firstName; set => Set(ref firstName, value); }
+        public string FirstName { get => firstName; set
+            {
+                Set(ref firstName, value);
+                OnPropertyChanged(nameof(DisplayName));
+            } }
         private string firstName;
 
-        public string SecondName { get => secondName; set => Set(ref secondName, value); }
+        public string SecondName { get => secondName; set
+            {
+                Set(ref secondName, value);
+                OnPropertyChanged(nameof(DisplayName));
+            } }
         private string secondName;
 
         public string ThirdName { get => thirdName; set => Set(ref thirdName, value); }
@@ -24,8 +33,8 @@ namespace StudentSystem.Entities
         public string Gender { get => gender; set => Set(ref gender, value); }
         private string gender;
 
-        public DateTime Birthday { get => birthday; set => Set(ref birthday, value); }
-        private DateTime birthday;
+        public DateTimeOffset Birthday { get => birthday; set => Set(ref birthday, value); }
+        private DateTimeOffset birthday;
 
         public string Address { get => address; set => Set(ref address, value); }
         private string address;
@@ -38,7 +47,16 @@ namespace StudentSystem.Entities
         public string AdditionalInfo { get => additionalInfo; set => Set(ref additionalInfo, value); }
         private string additionalInfo;
 
-        public ObservableCollection<StudentParent> StudentParents { get; set; }
+        [NotMapped]
+        public string DisplayName
+        {
+            get => $"{ParentId} {SecondName} {FirstName}";
+            set => Set(ref displayName, value);
+
+        }
+        private string displayName;
+
+        public ObservableCollection<StudentParent> StudentParents { get; set; } = new ObservableCollection<StudentParent>();
         public override string ToString() {
             return $"{firstName} {secondName} {DateTime.Now.Year - birthday.Year} years";
         }

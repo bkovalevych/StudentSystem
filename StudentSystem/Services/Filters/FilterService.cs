@@ -27,7 +27,7 @@ namespace StudentSystem.Services
                 var predicate = ParentPredicates[index];
                 var selector = Selects[index];
                 var finded = allParents.Where(o => predicate(o, param ?? ""));
-                var new_suggestions = finded.Select(selector);
+                var new_suggestions = finded.Select(selector).Distinct();
                 Add(Suggestions, new_suggestions);
                 result = result.Union(finded).ToList();
             }

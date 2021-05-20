@@ -8,16 +8,28 @@ namespace StudentSystem.Entities
 {
     using Helpers;
     using System.Collections.ObjectModel;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Student : Observable
     {
         public int StudentId { get => id; set => Set(ref id, value); }
         private int id;
 
-        public string FirstName { get => firstName; set => Set(ref firstName, value); }
+        public string FirstName { get => firstName; set
+            {
+                Set(ref firstName, value);
+                OnPropertyChanged(nameof(DisplayName));
+            } }
         private string firstName;
 
-        public string SecondName { get => secondName; set => Set(ref secondName, value); }
+        public string SecondName
+        {
+            get => secondName; set 
+            {
+                Set(ref secondName, value);
+                OnPropertyChanged(nameof(DisplayName));
+            } 
+        }
         private string secondName;
 
         public string ThirdName { get => thirdName; set => Set(ref thirdName, value); }
@@ -26,8 +38,8 @@ namespace StudentSystem.Entities
         public string Gender { get => gender; set => Set(ref gender, value); }
         private string gender;
 
-        public DateTime Birthday { get => birthday; set => Set(ref birthday, value); }
-        private DateTime birthday;
+        public DateTimeOffset Birthday { get => birthday; set => Set(ref birthday, value); }
+        private DateTimeOffset birthday;
 
         public string Address { get => address; set => Set(ref address, value); }
         private string address;
@@ -64,18 +76,27 @@ namespace StudentSystem.Entities
         public string AdditionalInfo { get => additionalInfo; set => Set(ref additionalInfo, value); }
         private string additionalInfo;
 
-        public DateTime StartStudy { get => startStudy; set => Set(ref startStudy, value); }
-        private DateTime startStudy;
+        public DateTimeOffset StartStudy { get => startStudy; set => Set(ref startStudy, value); }
+        private DateTimeOffset startStudy;
 
 
-        public DateTime EndStudy { get => endStudy; set => Set(ref endStudy, value); }
-        private DateTime endStudy;
+        public DateTimeOffset EndStudy { get => endStudy; set => Set(ref endStudy, value); }
+        private DateTimeOffset endStudy;
 
-        public int GroupId { get; set; }
+        public int? GroupId { get; set; }
         public Group Group { get => group; set => Set(ref group, value); }
         private Group group;
+        
+        [NotMapped]
+        public string DisplayName
+        {
+            get => $"{StudentId} {SecondName} {FirstName}";
+            set => Set(ref displayName, value);
+            
+        }
+        private string displayName;
 
-        public ObservableCollection<StudentParent> StudentParents { get; set; } 
+        public ObservableCollection<StudentParent> StudentParents { get; set; } = new ObservableCollection<StudentParent>();
         public override string ToString() {
             return $"{firstName} {secondName}, group {Group}, {DateTime.Now.Year - birthday.Year} years";
         }

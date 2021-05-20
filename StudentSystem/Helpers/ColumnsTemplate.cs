@@ -9,7 +9,11 @@ using Windows.UI.Xaml;
 namespace StudentSystem.Helpers
 {
     using Entities;
-    
+    using System.IO;
+    using System.Xml;
+    using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Markup;
+
     public class ColumnsTemplate
     {
         public List<DataGridColumn> Students => students;
@@ -26,8 +30,9 @@ namespace StudentSystem.Helpers
                 BCol("FirstName"),
                 BCol("SecondName"),
                 BCol("ThirdName"),
+                BCol("GroupId", GetCollection<Group>(), "DisplayName", "Group"),
                 BCol("Gender", Constants.Gender),
-                BCol("Birthday"),
+                Dt("Birthday", true),
                 BCol("Address"),
                 BCol("PhoneNumber"),
                 BCol("IdentificationCode"),
@@ -39,9 +44,9 @@ namespace StudentSystem.Helpers
                 BCol("AverageMarkInSchool"),
                 BCol("ArmyCerificate"),
                 BCol("AdditionalInfo"),
-                BCol("StartStudy"),
-                BCol("EndStudy"),
-                BCol("GroupId", GetCollection<Group>(), "Name", "group")
+                Dt("StartStudy"),
+                Dt("EndStudy")
+                
             };
             parents = new List<DataGridColumn>() {
                 BCol("ParentId", true),
@@ -49,30 +54,34 @@ namespace StudentSystem.Helpers
                 BCol("SecondName"),
                 BCol("ThirdName"),
                 BCol("Gender", Constants.Gender),
-                BCol("Birhday"),
-                BCol("Adress"),
+                Dt("Birthday", true),
+                BCol("Address"),
                 BCol("PhoneNumber"),
                 BCol("Job"),
                 BCol("AdditionalInfo")
             };
             studentParents = new List<DataGridColumn>() {
                  BCol("StudentParentId", true),
-                 BCol("ParentId", GetCollection<Parent>(), "FirstName", "parent"),
-                 BCol("StudentId", GetCollection<Student>(), "FirstName", "student")
+                 BCol("ParentId", GetCollection<Parent>(), "DisplayName", "parent"),
+                 BCol("StudentId", GetCollection<Student>(), "DisplayName", "student")
             };
             groups = new List<DataGridColumn>() {
                 BCol("GroupId", true),
+                BCol("DepartmentId", GetCollection<Department>(), "ShortDepartmentName", "Department"),
+                BCol("DisplayName", true),
                 BCol("ShortName"),
                 BCol("Name"),
-                BCol("StartYear"),
+                BCol("CountStudents", true),
+                Dt("StartYear"),
                 BCol("CodeSpeciality"),
                 BCol("Course"),
                 BCol("GroupNumber"),
-                BCol("DepartmentId", GetCollection<Department>(), "ShortDepartmentName", "Department")
+                
             };
             departments = new List<DataGridColumn>() {
                 BCol("DepartmentId", true),
                 BCol("CountGroups", true),
+                BCol("CountStudents", true),
                 BCol("DepartmentName"),
                 BCol("ShortDepartmentName")
             };
@@ -107,10 +116,36 @@ namespace StudentSystem.Helpers
             }
         }
 
+        private DataGridColumn Dt(string path, bool showMothAndDay = false)
+        {
+            DataGridTemplateColumn result = new DataGridTemplateColumn() {
+                CanUserReorder = true,
+                CanUserResize = true,
+                CanUserSort = true,
+                Header = path
+            };
+            result.CellTemplate = CreateShow(path, showMothAndDay);
+            return result;
+        }
+        private DataTemplate CreateShow(string path, bool monthAndDayVisible)
+        {
+            string visible = monthAndDayVisible ? "True" : "False";
+            string stringReader =
+            "<DataTemplate " +
+               "xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+               "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" " +
+               " >" +
+               "<DatePicker Date=\"{Binding " + path + ", Mode=TwoWay}\" " +
+               "MonthVisible=\""+ visible + "\" " +
+               "DayVisible=\"" + visible + "\"/>" +
+               "</DataTemplate>";
+            return XamlReader.Load(stringReader) as DataTemplate;
+        }
+
 
         private DataGridColumn BCol(string path, bool disableIt = false) {
-            DataGridTextColumn column = new DataGridTextColumn();
-            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path) };
+            DataGridTextColumn column = new DataGridTextColumn() { CanUserReorder=true, CanUserSort=true, CanUserResize=true};
+            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path), TargetNullValue = "" };
             column.Header = path;
             column.IsReadOnly = false;
             column.Binding.Mode = Windows.UI.Xaml.Data.BindingMode.TwoWay;
@@ -121,8 +156,8 @@ namespace StudentSystem.Helpers
             return column;
         }
         private DataGridColumn BCol<T>(string path, IEnumerable<T> variants, string header = null, bool disableIt = false) {
-            DataGridComboBoxColumn column = new DataGridComboBoxColumn();
-            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path) };
+            DataGridComboBoxColumn column = new DataGridComboBoxColumn() { CanUserReorder = true, CanUserSort = true, CanUserResize = true };
+            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path), TargetNullValue = "" };
             if (header == null) {
                 header = path;
             }
@@ -138,8 +173,8 @@ namespace StudentSystem.Helpers
         }
 
         private DataGridColumn BCol <T>(string path, IEnumerable<T> variants, string displayProp, string header, bool disableIt = false) {
-            DataGridComboBoxColumn column = new DataGridComboBoxColumn();
-            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path) };
+            DataGridComboBoxColumn column = new DataGridComboBoxColumn() { CanUserReorder = true, CanUserSort = true, CanUserResize = true };
+            column.Binding = new Windows.UI.Xaml.Data.Binding() { Path = new PropertyPath(path), TargetNullValue = "" };
 
             column.Header = header;
             column.ItemsSource = variants;

@@ -20,6 +20,8 @@ namespace StudentSystem
     using Entities;
     using Helpers;
     using ViewModels;
+    using Windows.UI.Popups;
+    using ResourcesInitData;
     /// <summary>
     /// Пустая страница, которую можно использовать саму по себе или для перехода внутри фрейма.
     /// </summary>
@@ -29,15 +31,30 @@ namespace StudentSystem
         public MainPage()
         {
             this.InitializeComponent();
-            vm = new BaseVM(dtGrid.Columns);
+            //DeleteAll();
             //AddData();
+            vm = new BaseVM(dtGrid.Columns, lowLevel.Columns);
+            vm.RefreshCommand.Execute(null);
+        }
+
+        public void DeleteAll()
+        {
+            using(var db = new StudentContext())
+            {
+                db.RemoveRange(db.Students);
+                db.RemoveRange(db.StudentParents);
+                db.RemoveRange(db.Parents);
+                db.RemoveRange(db.Groups);
+                db.RemoveRange(db.Departments);
+                db.SaveChanges();
+            }
         }
 
         public void AddData() {
             using(StudentContext db = new StudentContext()) {
                 List<Department> departments = new List<Department>() { 
                     new Department() {
-                        DepartmentName = "Коип'ютерні науки",
+                        DepartmentName = "Комп'ютерні науки",
                         ShortDepartmentName = "КН"
                     },
                     new Department() {
@@ -49,8 +66,8 @@ namespace StudentSystem
                 db.SaveChanges();
 
                 List<Group> groups = new List<Group>();
-                for (int course = 1; course <= 4; ++course) {
-                    for (int groupNumber = 1; groupNumber <= 5; ++groupNumber) {
+                for (int course = 1; course <= 2; ++course) {
+                    for (int groupNumber = 1; groupNumber <= 2; ++groupNumber) {
                         groups.Add(
                         new Group() {
                             Course = course,
@@ -59,7 +76,7 @@ namespace StudentSystem
                             GroupNumber = groupNumber,
                             ShortName = "ПЗПІ",
                             Name = "Програмна Інженерія",
-                            StartYear = new DateTime(DateTime.Now.Year - course, 1, 1)
+                            StartYear = new DateTimeOffset(new DateTime(DateTime.Now.Year - course, 1, 1))
                         });
                         groups.Add(new Group() {
                             Course = course,
@@ -68,7 +85,7 @@ namespace StudentSystem
                             GroupNumber = groupNumber,
                             ShortName = "ШІ",
                             Name = "Штучний Інтелект",
-                            StartYear = new DateTime(DateTime.Now.Year - course, 1, 1)
+                            StartYear = new DateTimeOffset(new DateTime(DateTime.Now.Year - course, 1, 1))
                         });
                         groups.Add(new Group() {
                             Course = course,
@@ -76,70 +93,41 @@ namespace StudentSystem
                             Department = departments[1],
                             GroupNumber = groupNumber,
                             ShortName = "КН",
-                            Name = "Комп'ютерні науки",
-                            StartYear = new DateTime(DateTime.Now.Year - course, 1, 1)
+                            Name = "Комп'ютерні науки (Алгоритми)",
+                            StartYear = new DateTimeOffset(new DateTime(DateTime.Now.Year - course, 1, 1))
                         });
                     }
                 }
                 db.AddRange(groups);
                 db.SaveChanges();
-                List<Parent> parents = new List<Parent>();
-                for (int index = 0; index < 10; ++index) {
-                    parents.Add(new Parent() {
-                        AdditionalInfo = "default",
-                        Address = $"address {index % 5}",
-                        Birthday = new DateTime(1980 - index, index + 1, index + 1),
-                        FirstName = $"ParentName{index}",
-                        SecondName = $"ParentSecondName{index}",
-                        ThirdName = $"ParentThirdName{index}",
-                        Gender = Constants.Gender[index % 2],
-                        Job = $"job {index}",
-                        PhoneNumber = $"203405603{index}"
-                    });
+                var cp = new ContentPresenter();
+                for(int index = 0; index < cp.Students.Count; ++index)
+                {
+                    var s = cp.Students[index];
+                    s.Group = groups[index % groups.Count];
+                    s.GroupId = s.Group.GroupId;
+                    s.StartStudy = s.Group.StartYear;
+                    s.EndStudy = s.Group.StartYear.AddYears(5);
                 }
-                db.AddRange(parents);
+                db.AddRange(cp.Parents);
+                db.AddRange(cp.Students);
                 db.SaveChanges();
-
-                List<Student> students = new List<Student>();
-                for (int index = 0; index < 20; ++index) {
-                    students.Add(new Student() {
-                        AdditionalInfo = "default",
-                        Address = $"address {index % 5}",
-                        Birthday = new DateTime(1980 - index, (index % 12) + 1, index + 1),
-                        FirstName = $"StudentName{index}",
-                        SecondName = $"StudentSecondName{index}",
-                        ThirdName = $"StudentThirdName{index}",
-                        Gender = Constants.Gender[index % 2],
-                        ArmyCerificate = (index % 2 == 0) ? "" : $"123456{index}",
-                        PhoneNumber = $"203405603{index}",
-                        AverageMarkInSchool = 5.0 + (index % 6),
-                        BirthdayCertificate = $"2560{index}156{index}",
-                        Group = groups[index % 10],
-                        IdentificationCode = $"2560{index}000{index}",
-                        EndStudy = groups[index % 10].StartYear.AddYears(5),
-                        PassportCode = $"МТ260{index}020{index}3",
-                        School = $"school{index}",
-                        StartStudy = groups[index % 10].StartYear,
-                        SchoolCertificateCode = $"2560{index}{index}123",
-                        StudentCertificate = $"2560{index + 3}{index + 1}123"
-                    });
-                }
-                db.AddRange(students);
-                db.SaveChanges();
-                List<StudentParent> studentParents = new List<StudentParent>();
-                for (int index = 0; index < 20; ++index) {
-                    studentParents.Add(new StudentParent() {
-                        Parent = parents[index % 10],
-                        Student = students[index]
-                    });
-                }
-                db.AddRange(studentParents);
+                db.AddRange(cp.StudentParents);
                 db.SaveChanges();
             }
         }
 
         private async void MakeReport(object sender, RoutedEventArgs e) {
-            //await ToExcel.Some(vm.Report);
+            if(vm.SelectedShortName != null)
+            {
+                await ToExcel.Some(vm.Report);
+            }
+            else
+            {
+                var b = new MessageDialog("Select group");
+                await b.ShowAsync();
+            }
+            
         }
 
         private async void MakeGlobalReport(object sender, RoutedEventArgs e) {
