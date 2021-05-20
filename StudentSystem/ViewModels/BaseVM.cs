@@ -306,9 +306,40 @@ namespace StudentSystem.ViewModels
                 Groups.Where(o => !Equals(o.DepartmentId, o.Department?.DepartmentId))
                     .ToList().ForEach(g =>
                     {
+                        g.Department?.Groups?.Remove(g.Department?.Groups?.First(o => Equals(o.GroupId, g.GroupId)));
                         var d = Departments.First(o => Equals(o.DepartmentId, g.DepartmentId));
                         g.Department = d;
                         d?.Groups?.Add(g);
+                        
+                    });
+                Students.Where(s => !Equals(s.GroupId, s.Group?.GroupId))
+                    .ToList()
+                    .ForEach(s =>
+                    {
+                        s.Group?.Students?.Remove(s.Group?.Students?.First(o => Equals(o.StudentId, s.StudentId)));
+                        var g = Groups.First(gr => Equals(gr.GroupId, s.GroupId));
+                        s.Group = g;
+                        g?.Students?.Add(s);
+                    });
+                StudentParents
+                    .Where(sp => !Equals(sp.StudentId, sp.Student?.StudentId) || 
+                        !Equals(sp.ParentId, sp.Parent?.ParentId)
+                    )
+                    .ToList()
+                    .ForEach(sp =>
+                    {
+                        sp.Student?.StudentParents?.Remove(sp.Student?.StudentParents?
+                            .First(o => o.StudentParentId == sp.StudentParentId));
+                        var s = Students.First(st => Equals(st.StudentId, sp.StudentId));
+                        sp.Student = s;
+                        s?.StudentParents?.Add(sp);
+
+                        sp.Parent?.StudentParents?.Remove(sp.Parent?.StudentParents?
+                            .First(o => o.StudentParentId == sp.StudentParentId));
+                        var p = Parents.First(par => Equals(par.ParentId, sp.ParentId));
+                        sp.Parent = p;
+                        p?.StudentParents?.Add(sp);
+
                     });
                 db.Departments.UpdateRange(Departments.Where(o => !needAdd.Contains(o)));
                 db.Groups.UpdateRange(Groups.Where(o => !needAdd.Contains(o)));
@@ -384,6 +415,7 @@ namespace StudentSystem.ViewModels
                         Add(lowColumns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(Parents):
+                        SorterService = new ParentSorterSevice();
                         Add(columns, columnsTemplate.Parents);
                         Add(lowColumns, columnsTemplate.StudentsParents);
                         break;

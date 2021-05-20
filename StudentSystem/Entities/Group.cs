@@ -64,7 +64,6 @@ namespace StudentSystem.Entities
             set
             {
                 Set(ref departmentId, value);
-                Department?.Groups?.Remove(Department?.Groups?.First(o => Equals(o.DepartmentId, value)));
             }
         }
         private int? departmentId;

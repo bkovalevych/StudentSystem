@@ -83,7 +83,14 @@ namespace StudentSystem.Entities
         public DateTimeOffset EndStudy { get => endStudy; set => Set(ref endStudy, value); }
         private DateTimeOffset endStudy;
 
-        public int? GroupId { get; set; }
+        public int? GroupId
+        {
+            get => groupId; set
+            {
+                Set(ref groupId, value);
+            }
+        }
+        private int? groupId;
         public Group Group { get => group; set => Set(ref group, value); }
         private Group group;
         

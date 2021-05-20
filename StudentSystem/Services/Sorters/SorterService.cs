@@ -18,7 +18,7 @@ namespace StudentSystem.Services
         private void SortData(ObservableCollection<T> collection, DataGridColumn column)
         {
             var key = column.Header as string;
-            if(Comparisons.ContainsKey(key))
+            if(Comparisons.ContainsKey(key) && collection != null)
             {
                 int orderType = 1;
                 if(column.SortDirection == null || column.SortDirection == DataGridSortDirection.Descending)
