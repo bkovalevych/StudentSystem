@@ -131,6 +131,7 @@
     <Compile Include="Helpers\RelayCommand.cs" />
     <Compile Include="Helpers\SortParameterConverter.cs" />
     <Compile Include="Helpers\ToExcel.cs" />
+    <Compile Include="Helpers\VisibilityReverse.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -141,12 +142,16 @@
     <Compile Include="Services\Filters\FilterService.cs" />
     <Compile Include="Services\Filters\IFilterService.cs" />
     <Compile Include="Services\Filters\StudentFilter.cs" />
+    <Compile Include="Services\Sorters\DepartmentSorterService.cs" />
+    <Compile Include="Services\Sorters\GroupSorterService.cs" />
     <Compile Include="Services\Sorters\ISorterService.cs" />
     <Compile Include="Services\Sorters\ParentSorterSevice.cs" />
     <Compile Include="Services\Sorters\SorterService.cs" />
+    <Compile Include="Services\Sorters\StudentParentSorterService.cs" />
     <Compile Include="Services\Sorters\StudentSorterService.cs" />
     <Compile Include="StudentContext.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
+    <Compile Include="ViewModels\GroupingViewModel.cs" />
     <Compile Include="ViewModels\ItemChoose.cs" />
   </ItemGroup>
   <ItemGroup>

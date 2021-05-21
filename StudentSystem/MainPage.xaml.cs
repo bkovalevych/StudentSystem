@@ -28,6 +28,7 @@ namespace StudentSystem
     public sealed partial class MainPage : Page
     {
         public BaseVM vm;
+        public GroupingViewModel grouping;
         public MainPage()
         {
             this.InitializeComponent();
@@ -35,6 +36,7 @@ namespace StudentSystem
             //AddData();
             vm = new BaseVM(dtGrid.Columns, lowLevel.Columns);
             vm.RefreshCommand.Execute(null);
+            grouping = new GroupingViewModel(() => vm.Students);
         }
 
         public void DeleteAll()

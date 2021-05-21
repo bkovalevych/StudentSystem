@@ -62,8 +62,8 @@ namespace StudentSystem.Helpers
             };
             studentParents = new List<DataGridColumn>() {
                  BCol("StudentParentId", true),
-                 BCol("ParentId", GetCollection<Parent>(), "DisplayName", "parent"),
-                 BCol("StudentId", GetCollection<Student>(), "DisplayName", "student")
+                 BCol("ParentId", GetCollection<Parent>(), "DisplayName", "Parent"),
+                 BCol("StudentId", GetCollection<Student>(), "DisplayName", "Student")
             };
             groups = new List<DataGridColumn>() {
                 BCol("GroupId", true),

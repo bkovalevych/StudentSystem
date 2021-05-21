@@ -65,8 +65,8 @@ namespace StudentSystem.ViewModels
         }
         private int selectedLowRowIndex = -1;
 
-        public IEnumerable<object> LowLevel { get => lowLevel; set => Set(ref lowLevel, value); }
-        private IEnumerable<object> lowLevel;
+        public IEnumerable<Observable> LowLevel { get => lowLevel; set => Set(ref lowLevel, value); }
+        private IEnumerable<Observable> lowLevel;
         public Observable SelectedRow { get => selectedRow; set
             {
                 Set(ref selectedRow, value);
@@ -381,6 +381,15 @@ namespace StudentSystem.ViewModels
             set => Set(ref sorterService, value);
         }
         private ISorterService<Observable> sorterService;
+
+        public ISorterService<Observable> LowSorterService
+        {
+            get => lowSorterService;
+            set => Set(ref lowSorterService, value);
+        }
+        private ISorterService<Observable> lowSorterService;
+
+
         public Visibility ShowReport
         {
             get => showReport;
@@ -388,11 +397,26 @@ namespace StudentSystem.ViewModels
         }
         private Visibility showReport = Visibility.Collapsed;
 
+        public Visibility ShowGrouping
+        {
+            get => showGrouping;
+            set => Set(ref showGrouping, value);
+        }
+        private Visibility showGrouping = Visibility.Collapsed;
+
         public ICommand SortCommand => new RelayCommand((o) =>
         {
             if(o is DataGridColumn dg)
             {
                 SorterService?.Sort(SelectedVariant.Val, dg);
+            }
+        });
+
+        public ICommand SortLowCommand => new RelayCommand((o) =>
+        {
+            if(o is DataGridColumn dg)
+            {
+                LowSorterService?.Sort(LowLevel, dg);
             }
         });
 
@@ -406,29 +430,37 @@ namespace StudentSystem.ViewModels
                 lowColumns.Clear();
                 LowLevel = null;
                 ShowReport = Visibility.Collapsed;
+                ShowGrouping = Visibility.Collapsed;
                 switch(value.Variant) {
                     case nameof(Students):
                         SelectedFilter = new StudentFilter();
                         SorterService = new StudentSorterService();
-                        
+                        LowSorterService = new StudentParentSorterService();
                         Add(columns, columnsTemplate.Students);
                         Add(lowColumns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(Parents):
                         SorterService = new ParentSorterSevice();
+                        LowSorterService = new StudentParentSorterService();
                         Add(columns, columnsTemplate.Parents);
                         Add(lowColumns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(StudentParents):
+                        SorterService = new StudentParentSorterService();
+                        LowSorterService = null;
                         Add(columns, columnsTemplate.StudentsParents);
                         break;
                     case nameof(Groups):
                         SelectedFilter = new GroupFilterService();
+                        SorterService = new GroupSorterService();
+                        LowSorterService = new StudentSorterService();
                         Add(columns, columnsTemplate.Groups);
                         Add(lowColumns, columnsTemplate.Students);
                         break;
                     case nameof(Departments):
                         SelectedFilter = new DepartmentFilterService();
+                        SorterService = new DepartmentSorterService();
+                        LowSorterService = new GroupSorterService();
                         Add(columns, columnsTemplate.Departments);
                         Add(lowColumns, columnsTemplate.Groups);
                         break;
@@ -436,6 +468,10 @@ namespace StudentSystem.ViewModels
                         Add(columns, columnsTemplate.Students);
                         UpdateReport();
                         ShowReport = Visibility.Visible;
+                        break;
+                    case "Grouping":
+                        ShowGrouping = Visibility.Visible;
+                        SelectedFilter = new StudentFilter();
                         break;
                 }
                 
@@ -458,7 +494,8 @@ namespace StudentSystem.ViewModels
                 new ItemChoose() { Variant = nameof(StudentParents), Val = StudentParents },
                 new ItemChoose() { Variant = nameof(Groups), Val = Groups },
                 new ItemChoose() { Variant = nameof(Departments), Val = Departments },
-                new ItemChoose() { Variant = "Report", Val = Report}
+                new ItemChoose() { Variant = "Report", Val = Report},
+                new ItemChoose() { Variant = "Grouping", Val = new List<Student>()}
             };
             columnsTemplate = new ColumnsTemplate();
             SelectedVariant = Variants[0];

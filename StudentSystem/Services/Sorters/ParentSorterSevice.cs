@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace StudentSystem.Services
 {
     using Entities;
-    class ParentSorterSevice : SorterService<Parent>
+    public class ParentSorterSevice : SorterService<Parent>
     {
         protected override Dictionary<string, Comparison<Parent>> Comparisons
         {

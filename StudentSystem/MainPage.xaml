@@ -15,10 +15,11 @@
     <Page.Resources>
         <helpers:QueryParameterConverter x:Key="querySubmitConverter"/>
         <helpers:SortParameterConverter x:Key="sortConverter"/>
+        <helpers:VisibilityReverse x:Key="visReverce"/>
     </Page.Resources>
     <Page.TopAppBar>
         <CommandBar>
-            <AppBarButton Label="Видалити" Icon="Delete" />
+            <AppBarButton Label="Видалити" Icon="Delete" Command="{x:Bind vm.DeleteHighItemCommand}"/>
             <AppBarButton Label="Оновити" Icon="Refresh" Command="{x:Bind vm.RefreshCommand}"/>
             <AppBarButton Label="Зберегти" Icon="Save" Command="{x:Bind vm.SaveAllCommand}"/>
             <AppBarElementContainer>
@@ -42,19 +43,30 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="3*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        
-        <ComboBox ItemsSource="{x:Bind vm.Variants}" SelectedItem="{x:Bind vm.SelectedVariant, Mode=TwoWay}"/>
-        <controls:DataGrid x:Name="dtGrid"
+
+        <StackPanel Margin="20" Orientation="Horizontal" Spacing="10">
+            <ComboBox
+                Header="Menu"
+                ItemsSource="{x:Bind vm.Variants}" SelectedItem="{x:Bind vm.SelectedVariant, Mode=TwoWay}"/>
+            <ComboBox Header="Group By" 
+                      Visibility="{x:Bind vm.ShowGrouping, Mode=TwoWay}"
+                      ItemsSource="{x:Bind grouping.Variants}" 
+                      SelectedItem="{x:Bind grouping.SelectedVariant, Mode=TwoWay}"/>
+        </StackPanel>
+        <controls:DataGrid 
+            x:Name="dtGrid"
+                           BorderThickness="0"
                            IsReadOnly="False"
                            Grid.Row="1"
                            SelectedIndex="{x:Bind vm.SelectedHighRowIndex, Mode=TwoWay}"
                            SelectedItem="{x:Bind vm.SelectedRow, Mode=TwoWay}"
                            ItemsSource="{x:Bind vm.SelectedVariant.Val, Mode=TwoWay}"
                            AutoGenerateColumns="False"
+                           Visibility="{x:Bind vm.ShowReport, Converter={StaticResource visReverce}}"
                            >
             <interactivity:Interaction.Behaviors>
                 <interactions:EventTriggerBehavior EventName="Sorting">
@@ -72,14 +84,23 @@
             </controls:DataGrid.ContextFlyout>
         </controls:DataGrid>
         <controls:DataGrid IsReadOnly="False"
+                           BorderThickness="0"
                            x:Name="lowLevel"
                            SelectedIndex="{x:Bind vm.SelectedLowRowIndex, Mode=TwoWay}"
                            Grid.Row="2"
                            SelectedItem="{x:Bind vm.SelectedLowRow, Mode=TwoWay}"
                            ItemsSource="{x:Bind vm.LowLevel, Mode=TwoWay}"
                            AutoGenerateColumns="False"
+                           CanUserSortColumns="True"
+                           Visibility="{x:Bind vm.ShowReport, Converter={StaticResource visReverce}}"
                            >
-            
+            <interactivity:Interaction.Behaviors>
+                <interactions:EventTriggerBehavior EventName="Sorting">
+                    <interactions:InvokeCommandAction 
+                        Command="{x:Bind vm.SortLowCommand}"
+                        InputConverter="{StaticResource sortConverter}"/>
+                </interactions:EventTriggerBehavior>
+            </interactivity:Interaction.Behaviors>
             <controls:DataGrid.ContextFlyout>
                 <MenuFlyout>
                     <MenuFlyoutItem Text="Додати на нижньому рівні" Icon="Add" Command="{x:Bind vm.AddLowItemCommand}"/>
@@ -92,7 +113,7 @@
                     Orientation="Horizontal" 
                     Spacing="20" 
                     Visibility="{x:Bind vm.ShowReport, Mode=TwoWay}">
-            <Button Click="MakeReport" >Make report</Button>
+            <Button Click="MakeReport" >Звіт по обраній групі</Button>
             <ComboBox Header="Group" 
                       ItemsSource="{x:Bind vm.ShortNames}" 
                       SelectedItem="{x:Bind vm.SelectedShortName, Mode=TwoWay}"/>
@@ -102,7 +123,21 @@
             <ComboBox Header="Course"
                       ItemsSource="{x:Bind vm.Courses}" 
                       SelectedItem="{x:Bind vm.SelectedCourse, Mode=TwoWay}"/>
-            <Button Click="MakeGlobalReport">Global Report</Button>
+            <Button Click="MakeGlobalReport">Глобальний звіт</Button>
         </StackPanel>
+
+        <TreeView Grid.Row="1" Grid.RowSpan="2" 
+                  Visibility="{x:Bind vm.ShowGrouping, Mode=TwoWay}"
+                  ItemsSource="{x:Bind grouping.Collection, Mode=TwoWay}" >
+            <TreeView.ItemTemplate>
+                <DataTemplate>
+                    <TreeViewItem
+                                ItemsSource="{Binding Students}"
+                                Content="{Binding Key}">
+                        
+                    </TreeViewItem>
+                </DataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
     </Grid>
 </Page>
